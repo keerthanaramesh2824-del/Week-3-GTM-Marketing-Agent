@@ -1,0 +1,788 @@
+{
+  "name": "Week 3 - GTM Marketing Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "lastNode"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7785a2cc-5c95-40cd-a8f5-31773c76800e",
+      "name": "When chat message received"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        192
+      ],
+      "id": "6c43e4ed-8fe0-4e28-8b2f-1b2767930b75",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        320,
+        240
+      ],
+      "id": "ea735c80-ca03-45a8-b29d-bb59b65f7abf",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the AI Study Buddy product knowledge base to retrieve accurate product features, benefits, target audience, and marketing guidelines. Use this tool before generating marketing content. Do not invent product details, pricing, launch dates, or statistics.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "gtm-product-knowledge",
+          "mode": "list",
+          "cachedResultName": "gtm-product-knowledge"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        224
+      ],
+      "id": "de302058-6a36-419f-9b12-ad88da6aa490",
+      "name": "Pinecone Vector Store"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        432
+      ],
+      "id": "355d58bc-adad-4dab-a44c-202ce6df7a20",
+      "name": "Embeddings OpenAI"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an AI Go-To-Market (GTM) Marketing Assistant.\n\nYour job is to help users plan marketing campaigns for products, services, or events.\n\nBefore answering questions about AI Study Buddy or generating marketing content, use the Pinecone Vector Store tool to retrieve accurate product information.\n\nYour responsibilities:\n1. Identify the product and target audience.\n2. Retrieve product features, benefits, and marketing guidelines from Pinecone.\n3. Suggest a suitable marketing strategy and tone.\n4. Create a LinkedIn post, promotional email, short blog draft, and three advertisement variations when a full marketing campaign is requested.\n5. Organize the results under clear headings.\n6. Answer specific product questions directly when the user is not requesting a full campaign.\n7. Base product claims on retrieved information. Never invent features, pricing, launch dates, statistics, or testimonials.\n8. If important information is missing, clearly state that it is not specified and ask for clarification when necessary.\n9. Do not promise guaranteed academic results.\n10. Do not publish or send marketing content without human approval.\n\nUse clear, engaging, friendly, and professional English."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "166cd743-1857-4926-bb01-6d37c9600e06",
+      "name": "GTM Research & Planning Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "options": {
+          "systemMessage": "You are the GTM Content Creator Agent for an AI marketing workflow.\n\nYour task is to turn the research and product information provided by the previous agent into clear, engaging marketing content.\n\nUsing only the product information provided, generate:\n1. A LinkedIn post (100-150 words) with a suitable call to action and relevant hashtags.\n2. A promotional email with a subject line, greeting, body, and call to action.\n3. A short blog draft (200-300 words) with a title, introduction, key benefits, and conclusion.\n4. Three short advertisement variations with headlines and calls to action.\n\nRequirements:\n- Use a friendly, helpful, and professional tone.\n- Keep the messaging suitable for the target audience.\n- Never invent product features, prices, launch dates, statistics, testimonials, or website links.\n- Do not promise guaranteed academic results.\n- If information is missing, use neutral wording rather than making assumptions.\n- Organize the content under clear headings.\n- Treat all generated content as drafts requiring human review.\n- Do not publish or send any content.\n\nReturn all four marketing content sections in one response."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        592,
+        0
+      ],
+      "id": "94d92c80-3b5a-4dc1-90e9-db36ec44a58c",
+      "name": "GTM Content Creator Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        752,
+        256
+      ],
+      "id": "59ac2961-4cff-4bac-8e1f-784f72889680",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Verified product information from the Research Agent:\n{{ $('GTM Research & Planning Agent').item.json.output }}\n\nMarketing content to review:\n{{ $json.output }}\n",
+        "options": {
+          "systemMessage": "You are the GTM Content Review Agent for an AI marketing workflow.\n\nYour job is to review the marketing content generated by the Content Creator Agent.\n\nReview the following:\n1. Factual accuracy: Check product features and benefits against the verified product information supplied to you.\n2. Unsupported claims: Flag invented pricing, launch dates, statistics, testimonials, or website links.\n3. Tone: Ensure the content is friendly, professional, and appropriate for college students.\n4. Completeness: Check for a LinkedIn post, promotional email, short blog, and three advertisement variations.\n5. Clarity: Check grammar, readability, and calls to action.\n6. Safety: Flag guarantees of academic success or misleading claims.\n\nDo not assume unsupported product facts are true. If verified source information is unavailable, state that factual verification is incomplete.\n\nReturn your review using these headings:\nREVIEW STATUS: PASS or FAIL\nACCURACY: findings\nTONE: findings\nCOMPLETENESS: findings\nISSUES: list specific problems or write None\nRECOMMENDED CHANGES: specific corrections\n\nMark PASS only if all review criteria are satisfied. Do not publish or send marketing content."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        832,
+        0
+      ],
+      "id": "bf6f9fdb-7163-4759-8b62-66e6fadcacef",
+      "name": "GTM Content Review Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        944,
+        304
+      ],
+      "id": "094c277a-275d-4155-9b07-b016ce0c176a",
+      "name": "OpenAI Chat Model2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "1dcfd464-9d94-4bef-aa9c-160390bccc51",
+              "leftValue": "={{ $json.output.split('\\n')[0].trim()\n}}",
+              "rightValue": "REVIEW STATUS: PASS",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        1200,
+        0
+      ],
+      "id": "baee357a-7162-486f-8c23-ef38242ad143",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Original marketing draft:\n{{ $('GTM Content Creator Agent').item.json.output }}\n\nReview feedback:\n{{ $json.output }}\n\nReference product information:\n{{ $('GTM Research & Planning Agent').item.json.output }}\n\nRevise the original marketing draft to address the review feedback. Preserve the requested marketing formats and do not invent product information.",
+        "options": {
+          "systemMessage": "You are the GTM Content Revision Agent.\n\nYour job is to improve marketing drafts that failed the Content Review Agent's quality checks.\n\nYou will receive:\n1. The original marketing content.\n2. Review feedback explaining the issues.\n3. Reference product information.\n\nYour responsibilities:\n- Correct all factual errors and unsupported claims identified by the reviewer.\n- Improve clarity, grammar, tone, and calls to action.\n- Remove wording that implies guaranteed academic results.\n- Keep all content consistent with the reference product information.\n- Do not invent features, pricing, launch dates, statistics, testimonials, or website links.\n- Maintain the fictional demonstration and draft disclaimers.\n- Preserve all required formats: LinkedIn post (100-150 words), promotional email, short blog (200-300 words), and three advertisement variations.\n- Include appropriate academic integrity guidance where relevant.\n- Do not publish or send marketing content.\n\nReturn the complete revised marketing content under clear headings. Do not return only a list of changes."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1376,
+        144
+      ],
+      "id": "fef8036b-df3d-4662-9aa1-f9e4e89e71f9",
+      "name": "GTM Content Revision Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        272
+      ],
+      "id": "daef952e-07bd-45b7-9ead-8d3db7a0a154",
+      "name": "OpenAI Chat Model3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Reference product information:\n{{ $('GTM Research & Planning Agent').item.json.output }}\n\nRevised marketing content:\n{{ $json.output }}\n\nPrevious review feedback:\n{{ $('GTM Content Review Agent').item.json.output }}\n\nPerform a final review of the revised content. Check whether the previous issues have been resolved. Return PASS or FAIL with reasons.",
+        "options": {
+          "systemMessage": "You are the GTM Final Review Agent.\n\nYour job is to perform one final quality check on revised marketing content.\n\nCompare the revised marketing drafts against the supplied reference product information and previous review feedback.\n\nCheck:\n1. Whether the previous review issues have been corrected.\n2. Whether product claims match the reference information.\n3. Whether the LinkedIn post, promotional email, short blog, and three advertisements are complete.\n4. Whether the tone is friendly, clear, and professional.\n5. Whether the content avoids invented facts and guaranteed academic outcomes.\n6. Whether draft disclaimers and appropriate calls to action are present.\n7. Whether the LinkedIn post is 100-150 words and the blog is 200-300 words.\n\nReturn your decision in this format:\nREVIEW STATUS: PASS or FAIL\nACCURACY: findings\nCOMPLETENESS: findings\nISSUES: remaining problems or None\nFINAL RECOMMENDATION: explanation\n\nReturn PASS only if all requirements are satisfied. If the revised content still fails, recommend manual correction rather than another automatic revision. Never publish or send marketing content. Human approval is still required after PASS.This workflow reviews draft marketing content for a fictional demonstration product.\n\nEvaluate PASS or FAIL based on the accuracy, completeness, required word counts, tone, and safety of the draft content.\n\nDo not fail an otherwise compliant draft solely because real-world publishing prerequisites are unavailable, such as live landing-page URLs, finalized pricing, brand assets, or completed human/legal approvals.\n\nHowever, any unavailable CTA or demo destination must be clearly identified as a placeholder, and the content must not imply that a live demo, website, or signup process exists.\n\nReturn REVIEW STATUS: PASS only when all draft-content requirements are satisfied. Clearly list any remaining publication prerequisites as pending manual actions.\n\nReturn REVIEW STATUS: FAIL if the draft contains unsupported claims, misleading availability statements, missing required content, incorrect word counts, or other content-policy problems.\n\nA PASS means the draft is ready for human review, NOT approved for publication. Human approval and any necessary legal/compliance checks are still mandatory. Never publish or send marketing content automatically."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1728,
+        144
+      ],
+      "id": "bea8506f-dba3-4a38-8d6f-034ac90f4d3a",
+      "name": "GTM Final Review Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1728,
+        416
+      ],
+      "id": "fc7bd860-239c-4db0-adc7-4082c79be269",
+      "name": "OpenAI Chat Model4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "d40b057d-7528-4c8f-af61-38a3b84ed178",
+              "leftValue": "={{ $json.output.split('\\n')[0].trim()\n}}",
+              "rightValue": "REVIEW STATUS: PASS",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        2016,
+        144
+      ],
+      "id": "b444f7c3-20d8-433f-87be-fb2f2267cdad",
+      "name": "Final Review Passed?"
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "GTM Marketing Content Approval",
+        "formDescription": "=Please review the following AI-generated marketing content before approving it.\n\n{{ $('GTM Content Creator Agent').item.json.output }}\n\nOnly approve if the content is accurate, appropriate, and ready for use.\n",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Approval Decision",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Approve"
+                  },
+                  {
+                    "option": "Reject"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "limitWaitTime": "={{ false }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1840,
+        -320
+      ],
+      "id": "ebb6df73-0cda-4fe2-9c82-5ccbfb7d3c98",
+      "name": "Wait"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "e4678af4-4f51-410e-b049-79b9156b88fd",
+              "leftValue": "={{ $json['Approval Decision'] }}",
+              "rightValue": "Approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        2160,
+        -320
+      ],
+      "id": "787d3079-682b-4fcc-9783-9021f88a051f",
+      "name": "Human Approved?"
+    },
+    {
+      "parameters": {
+        "resume": "form",
+        "formTitle": "GTM Revised Content Approval",
+        "formDescription": "=Please review the revised AI Study Buddy marketing content below.\n\n{{ $('GTM Content Revision Agent').item.json.output }}\n\nThe content has passed the final AI review but still requires human approval.\n\nSelect Approve or Reject after reviewing the complete draft.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Approval Decision",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Approve"
+                  },
+                  {
+                    "option": "Reject"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2592,
+        160
+      ],
+      "id": "91589712-e819-4dd8-a307-3469ee3c6d4c",
+      "name": "Revised Content Approval"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "efc33da5-fa62-4289-99b9-2f5572b9b82e",
+              "leftValue": "={{ $json['Approval Decision'] }}",
+              "rightValue": "Approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        2800,
+        -48
+      ],
+      "id": "e4204a16-8691-4c98-9427-1d51692edca8",
+      "name": "Revised Human Approved?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "57dad284-ad08-4e17-b863-298afd99726f",
+              "name": "approval_url",
+              "value": "={{ $execution.resumeFormUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1312,
+        -160
+      ],
+      "id": "0bacd5cf-2f1a-4bbe-bfdf-59e8cd097f51",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "your-reviewer@example.com",
+        "subject": "GTM Marketing Content — Approval Required",
+        "message": "={{ `<h2>GTM Marketing Content Approval</h2>\n<p>The AI Study Buddy marketing drafts have passed the initial AI review and are ready for human review.</p>\n<p><a href=\"${$json.approval_url}\">Open Approval Form</a></p>\n<p>Please review the LinkedIn post, email, blog, and advertisements before choosing Approve or Reject.</p>\n<p>This is a fictional demonstration project. No marketing content will be published automatically.</p>` }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        -320
+      ],
+      "id": "e388fed4-9c98-4b7e-8084-ea8132e8335f",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "60741dc6-81ab-474f-8387-cf9f04adfbe4",
+              "name": "approval_url",
+              "value": "={{ $execution.resumeFormUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2224,
+        -80
+      ],
+      "id": "b81b85bd-07b7-42a3-bcb3-7fc72848a2be",
+      "name": "Revised Approval URL"
+    },
+    {
+      "parameters": {
+        "sendTo": "your-reviewer@example.com",
+        "subject": "GTM Revised Marketing Content — Approval Required",
+        "message": "={{ `<h2>GTM Revised Marketing Content Approval</h2>\n<p>The revised AI Study Buddy marketing drafts have passed the final AI review and require human approval.</p>\n<p><a href=\"${$json.approval_url}\">Open Revised Approval Form</a></p>\n<p>Please review the revised LinkedIn post, promotional email, blog, and three advertisements before selecting Approve or Reject.</p>\n<p>This is a fictional demonstration project. No marketing content will be published automatically.</p>` }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2448,
+        -80
+      ],
+      "id": "26d4e82f-32f3-453e-95bb-bc8ee2eb11c1",
+      "name": "Send Revised Approval Email"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "GTM Research & Planning Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "GTM Research & Planning Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "GTM Research & Planning Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "GTM Research & Planning Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GTM Research & Planning Agent": {
+      "main": [
+        [
+          {
+            "node": "GTM Content Creator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "GTM Content Creator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GTM Content Creator Agent": {
+      "main": [
+        [
+          {
+            "node": "GTM Content Review Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "GTM Content Review Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GTM Content Review Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GTM Content Revision Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "GTM Content Revision Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GTM Content Revision Agent": {
+      "main": [
+        [
+          {
+            "node": "GTM Final Review Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "GTM Final Review Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GTM Final Review Agent": {
+      "main": [
+        [
+          {
+            "node": "Final Review Passed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Human Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Review Passed?": {
+      "main": [
+        [
+          {
+            "node": "Revised Approval URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Content Approval": {
+      "main": [
+        [
+          {
+            "node": "Revised Human Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Revised Approval URL": {
+      "main": [
+        [
+          {
+            "node": "Send Revised Approval Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Revised Approval Email": {
+      "main": [
+        [
+          {
+            "node": "Revised Content Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
